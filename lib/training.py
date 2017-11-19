@@ -1,4 +1,4 @@
-import torch
+import torch, copy
 from itertools import count
 from torch.autograd import Variable
 from dataset import ReplayMemory, Transition
@@ -9,17 +9,25 @@ import torch.optim as optim
 import torch.nn.functional as F
 
 class Trainer:
-    def __init__(self, model, env, selection):
+    def __init__(self, model, env, selection, lr=1e-4):
         self.batch_size = 128
         self.gamma = 0.999
 
         self.memory = ReplayMemory(10000)
         self.model = model
+
         if use_cuda:
             self.model.cuda()
-        self.optimizer = optim.RMSprop(self.model.parameters())
+        self.target_model = copy.deepcopy(self.model)
 
-        self.num_episodes = 20
+        self.lr = lr
+        self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
+        # self.optimizer = optim.RMSprop(self.model.parameters(), lr=self.lr)
+        # self.optimizer = optim.RMSprop(self.model.parameters())        
+        self.target_update_frequency = 20
+        self.qnet_update_frequency = 1
+
+        self.num_episodes = 30
         self.env = env
         self.selection = selection
 
@@ -54,7 +62,10 @@ class Trainer:
 
         # Compute V(s_{t+1}) for all next states.
         next_state_values = Variable(torch.zeros(self.batch_size).type(Tensor))
-        next_state_values[non_final_mask] = self.model(non_final_next_states).max(1)[0]
+
+        # use target network for this transformation
+        next_state_values[non_final_mask] = self.target_model(non_final_next_states)\
+                                                .max(1)[0]
         # Now, we don't want to mess up the loss with a volatile flag, so let's
         # clear it. After this, we'll just end up with a Variable that has
         # requires_grad=False
@@ -68,9 +79,15 @@ class Trainer:
         # Optimize the model
         self.optimizer.zero_grad()
         loss.backward()
-        for param in self.model.parameters():
-            param.grad.data.clamp_(-1, 1)
-        self.optimizer.step()
+
+        if self.selection.steps_done % self.qnet_update_frequency == 0:
+            for param in self.model.parameters():
+                param.grad.data.clamp_(-1, 1)
+            self.optimizer.step()
+
+        # update target network
+        if self.selection.steps_done % self.target_update_frequency == 0:
+            self.target_model = copy.deepcopy(self.model)
 
     def plot_durations(self): # todo: make this part of the env
         plt.figure(2)
@@ -100,9 +117,7 @@ class Trainer:
                 Qs = self.model(Variable(state, volatile=True).type(FloatTensor)).\
                                                           data.cpu().numpy().ravel()
                 action = self.selection.select_action(Qs)
-                # _, reward, done, _ = env.step(action[0, 0])
-                # print('action:', action[0, 0])
-                next_state, reward, done, _ = self.env.step(action[0, 0])        
+                next_state, reward, done, _ = self.env.step(action[0, 0])
                 reward = Tensor([reward])
         
                 # Store the transition in memory
@@ -111,7 +126,7 @@ class Trainer:
                 # Move to the next state
                 state = next_state
 
-                # Perform one step of the optimization (on the target network)
+                # Perform one step of the optimization
                 self.optimize_model()
                 if done:
                     self.episode_durations.append(t + 1)
@@ -123,3 +138,58 @@ class Trainer:
         self.env.close()
         plt.ioff()
         plt.show()
+
+        
+class DoraTrainer:
+    def __init__(self, qnet, enet, env, selection, lr=1e-3):
+
+        self.env = env
+        self.selection = selection
+        self.lr = lr
+        # no use of selection and env here, because will override run function
+        # selection.steps_done is used however
+        self.qnet_trainer = Trainer(qnet, env, selection, lr=lr)
+        self.enet_trainer = Trainer(enet, env, selection, lr=lr)
+
+        self.num_episodes = 30        
+
+    def run(self):
+        for i_episode in range(self.num_episodes):
+            # Initialize the environment and state
+            state = self.env.reset()
+            for t in count():
+                # Select and perform an action
+                Qs = self.qnet_trainer.model(Variable(state, volatile=True).\
+                                             type(FloatTensor)).\
+                                             data.cpu().numpy().ravel()
+                Es = self.enet_trainer.model(Variable(state, volatile=True).\
+                                             type(FloatTensor)).\
+                                             data.cpu().numpy().ravel()
+                
+                action = self.selection.select_action(Qs, Es, self.lr)
+
+                # reward is 0 for updating evalue
+                next_state, reward, done, _ = self.env.step(action[0, 0]) 
+                reward = Tensor([reward])
+        
+                # Store the transition in memory
+                self.qnet_trainer.memory.push(state, action, next_state, reward)
+                self.enet_trainer.memory.push(state, action, next_state, Tensor([0]))
+
+                # Move to the next state
+                state = next_state
+
+                # Perform one step of the optimization
+                self.qnet_trainer.optimize_model()
+                self.enet_trainer.optimize_model()
+                if done:
+                    self.qnet_trainer.episode_durations.append(t + 1)
+                    self.qnet_trainer.plot_durations()
+                    break
+
+        print('Complete')
+        self.env.render(close=True)
+        self.env.close()
+        plt.ioff()
+        plt.show()
+        

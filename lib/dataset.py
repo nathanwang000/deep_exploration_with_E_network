@@ -66,6 +66,8 @@ class CartPoleVision:
 
     def close(self):
         self.env.close()
+
+    ########## environment specific helpers #############
     
     def get_screen(self):
 
