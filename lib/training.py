@@ -12,10 +12,13 @@ import os
 
 working_dir= os.getcwd()
 log_path = os.path.join(working_dir, 'logs/')
+os.system('mkdir -p %s' % log_path)
 
 class Trainer:
-    def __init__(self, model, env, selection, lr=1e-4, run_name='default'):
+    def __init__(self, model, env, selection, lr=1e-4, run_name='default',
+                 plot=False):
 
+        self.plot = plot
         self.run_name = run_name
         self.batch_size = 128
         self.gamma = 0.999
@@ -137,8 +140,10 @@ class Trainer:
                 self.optimize_model()
                 if done:
                     self.episode_durations.append(t + 1)
-                    joblib.dump(self.episode_durations, os.path.join(log_path, "dqn_%s.pkl" % self.run_name))
-                    self.plot_durations()
+                    joblib.dump(self.episode_durations,
+                                os.path.join(log_path, "dqn_%s.pkl" % self.run_name))
+                    if self.plot:
+                        self.plot_durations()
                     break
 
         print('Complete')
@@ -149,8 +154,10 @@ class Trainer:
 
         
 class DoraTrainer:
-    def __init__(self, qnet, enet, env, selection, lr=1e-3, run_name="default"):
+    def __init__(self, qnet, enet, env, selection, lr=1e-3, run_name="default",
+                 plot=False):
 
+        self.plot = plot
         self.run_name = run_name
         self.env = env
         self.selection = selection
@@ -193,8 +200,10 @@ class DoraTrainer:
                 self.enet_trainer.optimize_model()
                 if done:
                     self.qnet_trainer.episode_durations.append(t + 1)
-                    joblib.dump(self.qnet_trainer.episode_durations, os.path.join(log_path, "dora_%s.pkl" % self.run_name))
-                    self.qnet_trainer.plot_durations()
+                    joblib.dump(self.qnet_trainer.episode_durations,
+                                os.path.join(log_path, "dora_%s.pkl" % self.run_name))
+                    if self.plot:
+                        self.qnet_trainer.plot_durations()
                     break
 
         print('Complete')
