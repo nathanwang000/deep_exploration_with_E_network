@@ -4,7 +4,7 @@ import torchvision.transforms as T
 from PIL import Image
 import numpy as np
 import torch
-from setting import *
+from lib.setting import *
 
 
 Transition = namedtuple('Transition',

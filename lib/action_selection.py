@@ -1,4 +1,4 @@
-from setting import *
+from lib.setting import *
 import numpy as np
 import math
 
