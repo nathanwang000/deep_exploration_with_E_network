@@ -31,10 +31,13 @@ def dora_run(run_name='default', plot=False):
     t = DoraTrainer(Qnet, Enet, env, selection, lr=0.01, run_name=run_name, plot=plot)
     t.run()
 
-if __name__ == '__main__':
-    args = parse_args()
-
+def run(args):
     if args.mode == 'dora':
         dora_run(run_name=args.name, plot=args.plot)
     else:
         dqn_run(run_name=args.name, plot=args.plot)
+
+    
+if __name__ == '__main__':
+    args = parse_args()
+    run(args)

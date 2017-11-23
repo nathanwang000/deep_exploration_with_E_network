@@ -146,11 +146,12 @@ class Trainer:
                         self.plot_durations()
                     break
 
-        print('Complete')
         self.env.render(close=True)
         self.env.close()
-        plt.ioff()
-        plt.show()
+        if self.plot:
+            print('Complete')            
+            plt.ioff()
+            plt.show()
 
         
 class DoraTrainer:
@@ -206,9 +207,12 @@ class DoraTrainer:
                         self.qnet_trainer.plot_durations()
                     break
 
-        print('Complete')
+
         self.env.render(close=True)
         self.env.close()
-        plt.ioff()
-        plt.show()
+        if self.plot:
+            print('Complete')            
+            plt.ioff()
+            plt.show()
+
         

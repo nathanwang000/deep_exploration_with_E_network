@@ -47,13 +47,13 @@ class LLL_epsilon_greedy:
         # log f(Qs) - log log_{1-lr} Es
         prob = self.q2pr(Qs)
         logF = safe_log(prob)
-        print("logEs", safe_log(Es, 1-lr))
-        print('Es', Es, '1-lr', 1-lr)
         loglogEs = safe_log(safe_log(Es, 1-lr))
         self.steps_done += 1
 
         action = int(np.argmax(logF - loglogEs))
-        print(logF.max(), loglogEs.max())
+        # print("logEs", safe_log(Es, 1-lr))
+        # print('Es', Es, '1-lr', 1-lr)
+        # print(logF.max(), loglogEs.max())
 
         return LongTensor([[action]])
     
