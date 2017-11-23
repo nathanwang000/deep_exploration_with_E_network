@@ -20,6 +20,5 @@ Reproduce results in ICLR submission DORA
 * TODO
 1. retrain for mountain car environment
 2. add LLL-softmax, or just LLL itself with greedy action, not epsilon greedy
-3. move this to my server
-4. follow exactly the paper setup
+3. follow exactly the paper setup
 

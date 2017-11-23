@@ -2,6 +2,34 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.externals import joblib
 import os
+import numpy as np
+
+def plot_combined(logdir='logs'):
+    colors = 'rbyok'
+    count_helper = 0
+    
+    def helper(mode, title=None):
+        nonlocal count_helper
+        count_helper += 1
+        
+        fns = filter(lambda s: s.startswith(mode), os.listdir(logdir))
+        data = []
+        for fn in fns:
+            log = joblib.load(os.path.join(logdir, fn))
+            data.append(log)
+
+        data = np.vstack(data)
+        label = mode if not title else title
+        sns.tsplot(data, condition=label, color=colors[count_helper])  
+
+    sns.set(font_scale=1.5)
+    helper('dora', "dora with LLL epsilon greedy")
+    helper('dqn', "dqn with epsilon greedy")
+    
+    plt.xlabel("episode", fontsize=20)
+    plt.ylabel("duration", fontsize=20)
+    plt.legend()    
+    plt.show()
 
 def plot_multiple(mode='dora', logdir='logs'):
     fns = filter(lambda s: s.startswith(mode), os.listdir(logdir))
@@ -27,5 +55,6 @@ def plot_default():
     plt.show()
 
     
-plot_multiple('dora')
-plot_multiple('dqn')
+# plot_multiple('dora')
+# plot_multiple('dqn')
+plot_combined()
