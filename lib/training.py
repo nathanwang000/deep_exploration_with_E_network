@@ -183,7 +183,7 @@ class DoraTrainer:
         self.lr = lr
         
         # no use of selection and env here, because will override run function
-        self.qnet_trainer = Trainer(qnet, env, selection, lr=lr)
+        self.qnet_trainer = Trainer(qnet, env, selection, lr=lr, sarsa=False)
         self.enet_trainer = Trainer(enet, env, selection, lr=lr, sarsa=True)
 
         self.num_episodes = 30        
