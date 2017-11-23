@@ -7,8 +7,8 @@ import torch
 from lib.setting import *
 
 
-Transition = namedtuple('Transition',
-                        ('state', 'action', 'next_state', 'reward'))
+Transition = namedtuple('Transition', # sarsa
+                        ('state', 'action', 'reward', 'next_state', 'next_action'))
 
 
 class ReplayMemory(object):

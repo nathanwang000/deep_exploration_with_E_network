@@ -3,6 +3,14 @@ import matplotlib.pyplot as plt
 from sklearn.externals import joblib
 import os
 import numpy as np
+import argparse
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="DORA training")
+    parser.add_argument('-m', '--mode', choices=['multiple', 'combined', 'default'],
+                        help='plot lines', default='default')
+    args = parser.parse_args()
+    return args
 
 def plot_combined(logdir='logs'):
     colors = 'rbyok'
@@ -54,7 +62,15 @@ def plot_default():
     plt.ylabel("duration", fontsize=20)
     plt.show()
 
-    
-# plot_multiple('dora')
-# plot_multiple('dqn')
-plot_combined()
+def run(args):
+    if args.mode == 'combined':
+        plot_combined()
+    elif args.mode == 'default':
+        plot_default()
+    elif args.mode == 'multiple':
+        plot_multiple('dora')
+        plot_multiple('dqn')        
+
+if __name__ == '__main__':
+    args = parse_args()
+    run(args)

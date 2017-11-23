@@ -10,16 +10,14 @@ import torch.nn.functional as F
 from sklearn.externals import joblib
 import os
 
-working_dir= os.getcwd()
-log_path = os.path.join(working_dir, 'logs/')
-os.system('mkdir -p %s' % log_path)
-
 class Trainer:
-    def __init__(self, model, env, selection, lr=1e-4, run_name='default',
-                 plot=False):
+    def __init__(self, model, env, selection, lr=1e-4, sarsa=False,
+                 run_name='default', plot=False):
 
         self.plot = plot
         self.run_name = run_name
+
+        self.sarsa = sarsa # if true, update sarsa, false q-learning
         self.batch_size = 128
         self.gamma = 0.999
 
@@ -45,8 +43,10 @@ class Trainer:
         self.episode_durations = []
 
     def optimize_model(self):
+
         if len(self.memory) < self.batch_size:
             return
+        
         transitions = self.memory.sample(self.batch_size)
         # Transpose the batch (see http://stackoverflow.com/a/19343/3343043 for
         # detailed explanation).
@@ -65,6 +65,8 @@ class Trainer:
         state_batch = Variable(torch.cat(batch.state))
         action_batch = Variable(torch.cat(batch.action))
         reward_batch = Variable(torch.cat(batch.reward))
+        next_action_batch = Variable(torch.cat([a for a in batch.next_action
+                                                if a is not None]))    
 
         # Compute Q(s_t, a) - the model computes Q(s_t), then we select the
         # columns of actions taken
@@ -74,8 +76,12 @@ class Trainer:
         next_state_values = Variable(torch.zeros(self.batch_size).type(Tensor))
 
         # use target network for this transformation
-        next_state_values[non_final_mask] = self.target_model(non_final_next_states)\
-                                                .max(1)[0]
+        if self.sarsa:
+            next_state_values[non_final_mask] = self.target_model(non_final_next_states)\
+                                                    .gather(1, next_action_batch)
+        else:
+            next_state_values[non_final_mask] = self.target_model(non_final_next_states)\
+                                                    .max(1)[0]
         # Now, we don't want to mess up the loss with a volatile flag, so let's
         # clear it. After this, we'll just end up with a Variable that has
         # requires_grad=False
@@ -122,28 +128,40 @@ class Trainer:
         for i_episode in range(self.num_episodes):
             # Initialize the environment and state
             state = self.env.reset()
+            sarsa = None
             for t in count():
                 # Select and perform an action
                 Qs = self.model(Variable(state, volatile=True).type(FloatTensor)).\
                                                           data.cpu().numpy().ravel()
                 action = self.selection.select_action(Qs)
+
+                if sarsa is not None:
+                    # Store the transition in memory                    
+                    sarsa.append(action)
+                    self.memory.push(*sarsa) 
+                
                 next_state, reward, done, _ = self.env.step(action[0, 0])
                 reward = Tensor([reward])
         
-                # Store the transition in memory
-                self.memory.push(state, action, next_state, reward)
+                # Store next batch of trainsition
+                sarsa = [state, action, reward, next_state]
 
                 # Move to the next state
                 state = next_state
 
                 # Perform one step of the optimization
                 self.optimize_model()
+                
                 if done:
+                    # store last transition to memory
+                    sarsa.append(None)
+                    self.memory.push(*sarsa) 
+                    
+                    # report result
                     self.episode_durations.append(t + 1)
                     joblib.dump(self.episode_durations,
                                 os.path.join(log_path, "dqn_%s.pkl" % self.run_name))
-                    if self.plot:
-                        self.plot_durations()
+                    if self.plot: self.plot_durations()
                     break
 
         self.env.render(close=True)
@@ -163,10 +181,10 @@ class DoraTrainer:
         self.env = env
         self.selection = selection
         self.lr = lr
+        
         # no use of selection and env here, because will override run function
-        # selection.steps_done is used however
         self.qnet_trainer = Trainer(qnet, env, selection, lr=lr)
-        self.enet_trainer = Trainer(enet, env, selection, lr=lr)
+        self.enet_trainer = Trainer(enet, env, selection, lr=lr, sarsa=True)
 
         self.num_episodes = 30        
 
@@ -174,6 +192,7 @@ class DoraTrainer:
         for i_episode in range(self.num_episodes):
             # Initialize the environment and state
             state = self.env.reset()
+            sarsa = None
             for t in count():
                 # Select and perform an action
                 Qs = self.qnet_trainer.model(Variable(state, volatile=True).\
@@ -185,13 +204,20 @@ class DoraTrainer:
                 
                 action = self.selection.select_action(Qs, Es, self.lr)
 
+                if sarsa is not None:
+                    # Store the transition in memory                    
+                    sarsa.append(action)
+                    sarsa_dora = copy.deepcopy(sarsa)
+                    sarsa_dora[2] = Tensor([0])
+                    self.qnet_trainer.memory.push(*sarsa)
+                    self.enet_trainer.memory.push(*sarsa_dora)     
+
                 # reward is 0 for updating evalue
                 next_state, reward, done, _ = self.env.step(action[0, 0]) 
                 reward = Tensor([reward])
         
-                # Store the transition in memory
-                self.qnet_trainer.memory.push(state, action, next_state, reward)
-                self.enet_trainer.memory.push(state, action, next_state, Tensor([0]))
+                # Store next transition
+                sarsa = [state, action, reward, next_state]
 
                 # Move to the next state
                 state = next_state
@@ -199,7 +225,16 @@ class DoraTrainer:
                 # Perform one step of the optimization
                 self.qnet_trainer.optimize_model()
                 self.enet_trainer.optimize_model()
+
                 if done:
+                    # store last transition to memory
+                    sarsa.append(None)
+                    sarsa_dora = copy.deepcopy(sarsa)
+                    sarsa_dora[2] = Tensor([0])
+                    self.qnet_trainer.memory.push(*sarsa)
+                    self.enet_trainer.memory.push(*sarsa_dora)     
+
+                    # report result
                     self.qnet_trainer.episode_durations.append(t + 1)
                     joblib.dump(self.qnet_trainer.episode_durations,
                                 os.path.join(log_path, "dora_%s.pkl" % self.run_name))
