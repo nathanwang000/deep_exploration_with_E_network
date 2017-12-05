@@ -1,4 +1,4 @@
-from utility.parallel_run import simple_parallel
+from utility.parallel_run import map_parallel
 from main import run
 import copy
 
@@ -17,4 +17,4 @@ if __name__ == "__main__":
             plot = False
             tasks.append(Args(mode, name, plot))
     
-    simple_parallel(run, tasks)
+    map_parallel(run, tasks)

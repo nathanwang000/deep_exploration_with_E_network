@@ -9,7 +9,7 @@ def iterable(a):
     except:
         return False
     
-def simple_parallel(f, tasks):
+def map_parallel(f, tasks):
     ''' 
     embrassingly parallel
     f: function to apply
@@ -41,4 +41,6 @@ def simple_parallel(f, tasks):
             pool.terminate()
             raise
     print('finished preprocessing')
+
+    return [r.get() for r in result_list]
 
