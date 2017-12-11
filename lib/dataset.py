@@ -31,11 +31,55 @@ class ReplayMemory(object):
     def __len__(self):
         return len(self.memory)
 
+class MountainCar:
+    def __init__(self):
+        self.env = gym.make('MountainCar-v0')
+        self.name = 'mountain_car'
 
+    def reset(self):
+        state = torch.from_numpy(self.env.reset()).unsqueeze(0).float()
+        return state
+
+    def step(self, action):
+        next_state, reward, done, info = self.env.step(action)
+        if next_state is not None:
+            next_state = torch.from_numpy(next_state).unsqueeze(0).float()
+
+
+        if next_state is None:
+            assert done is True, "hah?"
+        return next_state, reward, done, info
+
+    def render(self, *args, **kwargs):
+        self.env.render(*args, **kwargs)
+
+    def close(self):
+        self.env.close()
+    
+class Pacwoman:
+    def __init__(self):
+        self.env = gym.make('MsPacman-v0')
+        self.name = 'pacwoman'        
+
+    def reset(self):
+        # todo
+        return self.env.reset()
+
+    def step(self, action):
+        # todo
+        return self.env.step(action)
+
+    def render(self, *args, **kwargs):
+        self.env.render(*args, **kwargs)
+
+    def close(self):
+        self.env.close()
+        
 class CartPoleVision:
     def __init__(self):
         self.env = gym.make('CartPole-v0').unwrapped
         self.screen_width = 600
+        self.name = 'cart_pole'                
 
     def reset(self):
         self.env.reset()

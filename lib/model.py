@@ -4,10 +4,10 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch.autograd import Variable
 
-class DQN(nn.Module):
-
+class PacwomanDQN(nn.Module):
+    # todo: write this
     def __init__(self):
-        super(DQN, self).__init__()
+        super(self.__class__, self).__init__()
 
         self.features = nn.Sequential(
             nn.Conv2d(3, 16, kernel_size=5, stride=2),
@@ -30,7 +30,50 @@ class DQN(nn.Module):
         x = self.regressor(x)
         return x
 
-def selectNet(netname='dqn'):
+class MountainCarDQN(nn.Module):
+
+    def __init__(self):
+        super(self.__class__, self).__init__()
+        
+        self.regressor = nn.Sequential(
+            nn.Linear(2, 2),
+            # nn.ReLU(),
+            # nn.Linear(2, 2),            
+        )
+
+    def forward(self, x):
+        x = self.regressor(x)
+        return x
+    
+class CartPoleDQN(nn.Module):
+
+    def __init__(self):
+        super(self.__class__, self).__init__()
+
+        self.features = nn.Sequential(
+            nn.Conv2d(3, 16, kernel_size=5, stride=2),
+            nn.BatchNorm2d(16),
+            nn.ReLU(),
+            nn.Conv2d(16, 32, kernel_size=5, stride=2),
+            nn.BatchNorm2d(32),
+            nn.ReLU(),            
+            nn.Conv2d(32, 32, kernel_size=5, stride=2),
+            nn.BatchNorm2d(32),
+            nn.ReLU())
+
+        self.regressor = nn.Sequential(
+            nn.Linear(448, 2)
+        )
+
+    def forward(self, x):
+        x = self.features(x)
+        x = x.view(x.size(0), -1)
+        x = self.regressor(x)
+        return x
+
+def selectNet(netname, envname):
+    DQN = {'cart_pole':  CartPoleDQN, 'pacwoman': PacwomanDQN,
+           'mountain_car': MountainCarDQN}[envname]
     if netname == 'dqn':
         return DQN()
     elif netname == 'enet':  # optimistic start and dora

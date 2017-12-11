@@ -54,22 +54,28 @@ class Trainer:
 
         # Compute a mask of non-final states and concatenate the batch elements
         non_final_mask = ByteTensor(tuple(map(lambda s: s is not None,
-                                              batch.next_state)))
+                                              batch.next_action)))
 
         # We don't want to backprop through the expected action values and volatile
         # will save us on temporarily changing the model parameters'
         # requires_grad to False!
-        non_final_next_states = Variable(torch.cat([s for s in batch.next_state
-                                                    if s is not None]),
-                                         volatile=True)
+        non_final_next_states = Variable(torch.cat([b for a, b in zip(batch.next_action,
+                                                                      batch.next_state)
+                                                    if a is not None]),
+                                         volatile=True)    
+        # Variable(torch.cat([s for s in batch.next_state
+        #                                             if s is not None]),
+        #                                  volatile=True)
         state_batch = Variable(torch.cat(batch.state))
         action_batch = Variable(torch.cat(batch.action))
         reward_batch = Variable(torch.cat(batch.reward))
-        next_action_batch = Variable(torch.cat([a for a in batch.next_action
+        next_action_batch = Variable(torch.cat([a for a, b in zip(batch.next_action,
+                                                                  batch.next_state)
                                                 if a is not None]))    
 
         # Compute Q(s_t, a) - the model computes Q(s_t), then we select the
         # columns of actions taken
+
         state_action_values = self.model(state_batch).gather(1, action_batch)
 
         # Compute V(s_{t+1}) for all next states.
@@ -139,7 +145,9 @@ class Trainer:
                     # Store the transition in memory                    
                     sarsa.append(action)
                     self.memory.push(*sarsa) 
-                
+
+                if self.plot:
+                    self.env.render()
                 next_state, reward, done, _ = self.env.step(action[0, 0])
                 reward = Tensor([reward])
         
@@ -161,15 +169,15 @@ class Trainer:
                     self.episode_durations.append(t + 1)
                     joblib.dump(self.episode_durations,
                                 os.path.join(log_path, "dqn_%s.pkl" % self.run_name))
-                    if self.plot: self.plot_durations()
+                    # if self.plot: self.plot_durations()
                     break
 
         self.env.render(close=True)
         self.env.close()
-        if self.plot:
-            print('Complete')            
-            plt.ioff()
-            plt.show()
+        # if self.plot:
+        #     print('Complete')            
+        #     plt.ioff()
+        #     plt.show()
 
         
 class DoraTrainer:
@@ -207,11 +215,15 @@ class DoraTrainer:
                 if sarsa is not None:
                     # Store the transition in memory                    
                     sarsa.append(action)
+                    if sarsa[4] is None and sarsa[3] is not None:
+                        print("bad")
                     sarsa_dora = copy.deepcopy(sarsa)
-                    sarsa_dora[2] = Tensor([0])
+                    sarsa_dora[2] = Tensor([0]) # set reward of enet to 0
                     self.qnet_trainer.memory.push(*sarsa)
                     self.enet_trainer.memory.push(*sarsa_dora)     
 
+                if self.plot:
+                    self.env.render()
                 # reward is 0 for updating evalue
                 next_state, reward, done, _ = self.env.step(action[0, 0]) 
                 reward = Tensor([reward])
@@ -229,6 +241,8 @@ class DoraTrainer:
                 if done:
                     # store last transition to memory
                     sarsa.append(None)
+                    # if sarsa[3] is not None: print('found it')                    
+                    
                     sarsa_dora = copy.deepcopy(sarsa)
                     sarsa_dora[2] = Tensor([0])
                     self.qnet_trainer.memory.push(*sarsa)
@@ -238,16 +252,16 @@ class DoraTrainer:
                     self.qnet_trainer.episode_durations.append(t + 1)
                     joblib.dump(self.qnet_trainer.episode_durations,
                                 os.path.join(log_path, "dora_%s.pkl" % self.run_name))
-                    if self.plot:
-                        self.qnet_trainer.plot_durations()
+                    # if self.plot:
+                    #     self.qnet_trainer.plot_durations()
                     break
 
 
         self.env.render(close=True)
         self.env.close()
-        if self.plot:
-            print('Complete')            
-            plt.ioff()
-            plt.show()
+        # if self.plot:
+        #     print('Complete')            
+        #     plt.ioff()
+        #     plt.show()
 
         
