@@ -44,10 +44,6 @@ class MountainCar:
         next_state, reward, done, info = self.env.step(action)
         if next_state is not None:
             next_state = torch.from_numpy(next_state).unsqueeze(0).float()
-
-
-        if next_state is None:
-            assert done is True, "hah?"
         return next_state, reward, done, info
 
     def render(self, *args, **kwargs):
@@ -58,16 +54,20 @@ class MountainCar:
     
 class Pacwoman:
     def __init__(self):
-        self.env = gym.make('MsPacman-v0')
+        self.env = gym.make('MsPacman-v0') # 9 actions
         self.name = 'pacwoman'        
 
     def reset(self):
-        # todo
-        return self.env.reset()
+        state = torch.from_numpy(self.env.reset().transpose((2,0,1)))\
+                     .unsqueeze(0).float()
+        return state
 
     def step(self, action):
-        # todo
-        return self.env.step(action)
+        next_state, reward, done, info = self.env.step(action)
+        if next_state is not None:
+            next_state = torch.from_numpy(next_state.transpose((2,0,1)))\
+                              .unsqueeze(0).float()
+        return next_state, reward, done, info
 
     def render(self, *args, **kwargs):
         self.env.render(*args, **kwargs)
