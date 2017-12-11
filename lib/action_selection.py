@@ -27,6 +27,20 @@ class epsilon_greedy:
             action = int(np.argmax(Qs))
         return LongTensor([[action]])
 
+class softmax:
+    def __init__(self):
+        self.steps_done = 0
+
+    def q2pr(self, Qs):
+        # qvalues to probabilities
+        # softmax
+        return np.exp(Qs) / np.exp(Qs).sum()
+        
+    def select_action(self, Qs):
+        action = np.random.choice(len(Qs), p=self.q2pr(Qs)) 
+        return LongTensor([[action]])        
+
+    
 class LLL_epsilon_greedy:
     def __init__(self):
         self.steps_done = 0
@@ -42,6 +56,29 @@ class LLL_epsilon_greedy:
         prob = np.ones_like(Qs) * eps / num_a
         prob[np.argmax(Qs)] += 1-eps
         return prob
+        
+    def select_action(self, Qs, Es, lr):
+        # log f(Qs) - log log_{1-lr} Es
+        prob = self.q2pr(Qs)
+        logF = safe_log(prob)
+        loglogEs = safe_log(safe_log(Es, 1-lr))
+        self.steps_done += 1
+
+        action = int(np.argmax(logF - loglogEs))
+        # print("logEs", safe_log(Es, 1-lr))
+        # print('Es', Es, '1-lr', 1-lr)
+        # print(logF.max(), loglogEs.max())
+
+        return LongTensor([[action]])
+    
+class LLL_softmax:
+    def __init__(self):
+        self.steps_done = 0
+
+    def q2pr(self, Qs):
+        # qvalues to probabilities
+        # softmax
+        return np.exp(Qs) / np.exp(Qs).sum()
         
     def select_action(self, Qs, Es, lr):
         # log f(Qs) - log log_{1-lr} Es

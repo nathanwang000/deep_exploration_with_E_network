@@ -37,11 +37,6 @@ class CartPoleVision:
         self.env = gym.make('CartPole-v0').unwrapped
         self.screen_width = 600
 
-    def get_cart_location(self):
-        world_width = self.env.x_threshold * 2
-        scale = self.screen_width / world_width
-        return int(self.env.state[0] * scale + self.screen_width / 2.0)  # MIDDLE OF CART
-
     def reset(self):
         self.env.reset()
         self.last_screen = self.get_screen()
@@ -68,6 +63,10 @@ class CartPoleVision:
         self.env.close()
 
     ########## environment specific helpers #############
+    def get_cart_location(self):
+        world_width = self.env.x_threshold * 2
+        scale = self.screen_width / world_width
+        return int(self.env.state[0] * scale + self.screen_width / 2.0)  # MIDDLE OF CART
     
     def get_screen(self):
 

@@ -30,12 +30,16 @@ class DQN(nn.Module):
         x = self.regressor(x)
         return x
 
-def selectNet(Enet=False):
-    if not Enet:
+def selectNet(netname='dqn'):
+    if netname == 'dqn':
         return DQN()
-    # zero initialize last layer, sigmoid activation at the end
-    Enet = DQN()
-    for p in Enet.regressor[-1].parameters():
-        p.data.fill_(0)
-    Enet.regressor = nn.Sequential(*(list(Enet.regressor.children()) + [nn.Sigmoid()]))
-    return Enet
+    elif netname == 'enet':  # optimistic start and dora
+        # zero initialize last layer, sigmoid activation at the end
+        Enet = DQN()
+        for p in Enet.regressor[-1].parameters():
+            p.data.fill_(0)
+        Enet.regressor = nn.Sequential(*(list(Enet.regressor.children()) + \
+                                         [nn.Sigmoid()]))
+        return Enet
+    else: 
+        raise Exception('not implemented error')
