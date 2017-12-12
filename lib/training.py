@@ -18,7 +18,7 @@ class Trainer:
         self.run_name = run_name
 
         self.sarsa = sarsa # if true, update sarsa, false q-learning
-        self.batch_size = 128
+        self.batch_size = 32 # 128
         self.gamma = 0.999
 
         self.memory = ReplayMemory(10000)
@@ -39,8 +39,7 @@ class Trainer:
         self.env = env
         self.selection = selection
 
-        # this is cartpole specific, todo: make this part of environment
-        self.episode_durations = []
+        self.rewards = []
 
     def optimize_model(self):
 
@@ -111,30 +110,14 @@ class Trainer:
         if self.selection.steps_done % self.target_update_frequency == 0:
             self.target_model = copy.deepcopy(self.model)
 
-    def plot_durations(self): # todo: make this part of the env
-        plt.figure(2)
-        plt.clf()
-        durations_t = torch.FloatTensor(self.episode_durations)
-        plt.title('Training...')
-        plt.xlabel('Episode')
-        plt.ylabel('Duration')
-        plt.plot(durations_t.numpy())
-        # Take 100 episode averages and plot them too
-        if len(durations_t) >= 100:
-            means = durations_t.unfold(0, 100, 1).mean(1).view(-1)
-            means = torch.cat((torch.zeros(99), means))
-            plt.plot(means.numpy())
-
-        plt.pause(0.001)  # pause a bit so that plots are updated
-        if is_ipython:
-            display.clear_output(wait=True)
-            display.display(plt.gcf())
-        
     def run(self):
         for i_episode in range(self.num_episodes):
+            print("episode:", i_episode)
             # Initialize the environment and state
             state = self.env.reset()
             sarsa = None
+
+            rewards = 0
             for t in count():
                 # Select and perform an action
                 Qs = self.model(Variable(state, volatile=True).type(FloatTensor)).\
@@ -149,6 +132,7 @@ class Trainer:
                 if self.plot:
                     self.env.render()
                 next_state, reward, done, _ = self.env.step(action[0, 0])
+                rewards += reward
                 reward = Tensor([reward])
         
                 # Store next batch of trainsition
@@ -166,22 +150,16 @@ class Trainer:
                     self.memory.push(*sarsa) 
                     
                     # report result
-                    self.episode_durations.append(t + 1)
-                    joblib.dump(self.episode_durations,
+                    self.rewards.append(rewards)
+                    joblib.dump(self.rewards,
                                 os.path.join(log_path, "dqn_%s.pkl" % self.run_name))
-                    # if self.plot: self.plot_durations()
                     break
 
         self.env.render(close=True)
         self.env.close()
-        # if self.plot:
-        #     print('Complete')            
-        #     plt.ioff()
-        #     plt.show()
-
         
 class DoraTrainer:
-    def __init__(self, qnet, enet, env, selection, lr=1e-3, run_name="default",
+    def __init__(self, qnet, enet, env, selection, lr=1e-4, run_name="default",
                  plot=False):
 
         self.plot = plot
@@ -201,6 +179,8 @@ class DoraTrainer:
             # Initialize the environment and state
             state = self.env.reset()
             sarsa = None
+            rewards = 0
+            
             for t in count():
                 # Select and perform an action
                 Qs = self.qnet_trainer.model(Variable(state, volatile=True).\
@@ -225,7 +205,8 @@ class DoraTrainer:
                 if self.plot:
                     self.env.render()
                 # reward is 0 for updating evalue
-                next_state, reward, done, _ = self.env.step(action[0, 0]) 
+                next_state, reward, done, _ = self.env.step(action[0, 0])
+                rewards += reward
                 reward = Tensor([reward])
         
                 # Store next transition
@@ -241,7 +222,7 @@ class DoraTrainer:
                 if done:
                     # store last transition to memory
                     sarsa.append(None)
-                    # if sarsa[3] is not None: print('found it')                    
+                    # if sarsa[3] is not None: print('found it')      
                     
                     sarsa_dora = copy.deepcopy(sarsa)
                     sarsa_dora[2] = Tensor([0])
@@ -249,19 +230,15 @@ class DoraTrainer:
                     self.enet_trainer.memory.push(*sarsa_dora)     
 
                     # report result
-                    self.qnet_trainer.episode_durations.append(t + 1)
-                    joblib.dump(self.qnet_trainer.episode_durations,
-                                os.path.join(log_path, "dora_%s.pkl" % self.run_name))
-                    # if self.plot:
-                    #     self.qnet_trainer.plot_durations()
+                    self.qnet_trainer.rewards.append(rewards)
+                    joblib.dump(self.qnet_trainer.rewards,
+                                os.path.join(log_path,
+                                             "dora_%s.pkl" % self.run_name))
                     break
 
 
         self.env.render(close=True)
         self.env.close()
-        # if self.plot:
-        #     print('Complete')            
-        #     plt.ioff()
-        #     plt.show()
+
 
         

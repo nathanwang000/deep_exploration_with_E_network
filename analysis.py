@@ -7,12 +7,16 @@ import argparse
 
 def parse_args():
     parser = argparse.ArgumentParser(description="DORA training")
-    parser.add_argument('-m', '--mode', choices=['multiple', 'combined', 'default'],
-                        help='plot lines', default='default')
+    parser.add_argument('-m', '--mode',
+                        choices=['dqn', 'dora'],
+                        help="dqn or dora?", default='dora')
+    parser.add_argument('-p', '--ptype',
+                        choices=['multiple', 'combined', 'default'],
+                        help='plot type', default='default')
     args = parser.parse_args()
     return args
 
-def plot_combined(logdir='logs'):
+def plot_combined(mode='dora', logdir='logs'):
     colors = 'rbyok'
     count_helper = 0
     
@@ -31,11 +35,10 @@ def plot_combined(logdir='logs'):
         sns.tsplot(data, condition=label, color=colors[count_helper])  
 
     sns.set(font_scale=1.5)
-    helper('dora', "dora with LLL epsilon greedy")
-    helper('dqn', "dqn with epsilon greedy")
+    helper(mode, mode)
     
     plt.xlabel("episode", fontsize=20)
-    plt.ylabel("duration", fontsize=20)
+    plt.ylabel("rewards", fontsize=20)
     plt.legend()    
     plt.show()
 
@@ -47,29 +50,27 @@ def plot_multiple(mode='dora', logdir='logs'):
 
     plt.title(mode, fontsize=20)
     plt.xlabel("episode", fontsize=20)
-    plt.ylabel("duration", fontsize=20)
+    plt.ylabel("rewards", fontsize=20)
     plt.legend()
     plt.show()
 
-def plot_default():
-    dqn = joblib.load('logs/dqn_default.pkl')
-    dora = joblib.load('logs/dora_default.pkl')
+def plot_default(mode):
+    fn = joblib.load('logs/{}_default.pkl'.format(mode))
 
-    plt.plot(dqn, label="dqn with epsilon greedy")
-    plt.plot(dora, label="dora with LLL epsilon greedy")
+    plt.plot(fn, label=mode)
     plt.legend()
     plt.xlabel("episode", fontsize=20)
-    plt.ylabel("duration", fontsize=20)
+    plt.ylabel("rewards", fontsize=20)
     plt.show()
 
 def run(args):
-    if args.mode == 'combined':
-        plot_combined()
-    elif args.mode == 'default':
-        plot_default()
-    elif args.mode == 'multiple':
-        plot_multiple('dora')
-        plot_multiple('dqn')        
+    mode = args.mode
+    if args.ptype == 'combined':
+        plot_combined(mode)
+    elif args.ptype == 'default':
+        plot_default(mode)
+    elif args.ptype == 'multiple':
+        plot_multiple(mode)
 
 if __name__ == '__main__':
     args = parse_args()
