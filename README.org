@@ -62,6 +62,16 @@ register(
 
 then make a directory in ~gym/envs/bridge~ and put ~env/bridge.py~ in that directory
 
+To run the code
+
+#+BEGIN_SRC python
+import gym
+env_small = gym.make("BridgeEnv-v0")
+#+END_SRC
+
+#+RESULTS:
+: None
+
 * TODO
 
 urgent:
