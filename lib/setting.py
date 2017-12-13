@@ -8,9 +8,9 @@ LongTensor = torch.cuda.LongTensor if use_cuda else torch.LongTensor
 ByteTensor = torch.cuda.ByteTensor if use_cuda else torch.ByteTensor
 Tensor = FloatTensor
 
-working_dir= os.getcwd()
-log_path = os.path.join(working_dir, 'logs/')
-os.system('mkdir -p %s' % log_path)
+def set_log_path(log_path):
+    os.system('mkdir -p %s' % log_path)
+    return log_path
 
 # environment specific settings
 class DefaultSetting:

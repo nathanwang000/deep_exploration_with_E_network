@@ -17,8 +17,41 @@
 
 Reproduce results in ICLR submission DORA
 
+* Running the code
+
+The code has multiple arguments that you can pass in (e.g., to use Dora or DQN,
+to use epsilon greedy or softmax, to render the environment or not, choose the 
+environment to run). You can read about the options by running
+
+#+BEGIN_SRC bash
+python main.py -h
+#+END_SRC
+
+An example run using mountain car environment with the paper's setting is
+
+#+BEGIN_SRC bash
+python main.py -m dora -a softmax -g mountain_car
+#+END_SRC
+
+To repeat code in parralel using the same setting, run
+
+#+BEGIN_SRC bash
+python run_parallel.py -m dora -a softmax -g mountain_car
+#+END_SRC
+
+by default, this repeat 10 runs of the same experiment
+
 * TODO
-1. retrain for {mountain car, pacwoman} environment
-2. follow exactly the paper setup for model parameters
-3. visualize the training use tensorboard
-4. save model using torch
+
+urgent:
+
+1. add tabular code to the repository
+2. more evaluation metrics to use (e.g., record e value over time and observe
+   patterns)
+3. possibly drop the ms pacman experiment if too hard to tune
+4. possibly drop ensemble DQN if hard to get right 
+
+not urgent:
+
+1. visualize the training use tensorboard
+2. save model using torch

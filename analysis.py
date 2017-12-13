@@ -13,6 +13,9 @@ def parse_args():
     parser.add_argument('-p', '--ptype',
                         choices=['multiple', 'combined', 'default'],
                         help='plot type', default='default')
+    parser.add_argument('-l', '--logpath',
+                        help='where to save the log, defualt to logs',
+                        default='logs')
     args = parser.parse_args()
     return args
 
@@ -54,8 +57,8 @@ def plot_multiple(mode='dora', logdir='logs'):
     plt.legend()
     plt.show()
 
-def plot_default(mode):
-    fn = joblib.load('logs/{}_default.pkl'.format(mode))
+def plot_default(mode, logdir='logs'):
+    fn = joblib.load('{}/{}_default.pkl'.format(logdir, mode))
 
     plt.plot(fn, label=mode)
     plt.legend()
@@ -65,12 +68,13 @@ def plot_default(mode):
 
 def run(args):
     mode = args.mode
+    logdir = args.logpath
     if args.ptype == 'combined':
-        plot_combined(mode)
+        plot_combined(mode, logdir)
     elif args.ptype == 'default':
-        plot_default(mode)
+        plot_default(mode, logdir)
     elif args.ptype == 'multiple':
-        plot_multiple(mode)
+        plot_multiple(mode, logdir)
 
 if __name__ == '__main__':
     args = parse_args()

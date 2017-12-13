@@ -13,11 +13,12 @@ import os
 class Trainer:
     def __init__(self, model, env, selection, sarsa=False,
                  run_name='default', plot=False,
-                 setting=DefaultSetting()):
+                 setting=DefaultSetting(), log_path='logs'):
 
         print(setting.__dict__)
         self.plot = plot
         self.run_name = run_name
+        self.log_path = log_path
 
         self.sarsa = sarsa # if true, update sarsa, false q-learning
         self.batch_size = setting.batch_size
@@ -154,7 +155,7 @@ class Trainer:
                     # report result
                     self.rewards.append(rewards)
                     joblib.dump(self.rewards,
-                                os.path.join(log_path, "dqn_%s.pkl" % self.run_name))
+                                os.path.join(self.log_path, "dqn_%s.pkl" % self.run_name))
                     break
 
         self.env.render(close=True)
@@ -162,13 +163,14 @@ class Trainer:
         
 class DoraTrainer:
     def __init__(self, qnet, enet, env, selection, run_name="default",
-                 plot=False, setting=DefaultSetting()):
+                 plot=False, setting=DefaultSetting(), log_path='logs'):
 
         self.plot = plot
         self.run_name = run_name
         self.env = env
         self.selection = selection
         self.lr = setting.lr
+        self.log_path = log_path
 
         settingQ = setting
         settingE = copy.deepcopy(setting)        
@@ -241,7 +243,7 @@ class DoraTrainer:
                     # report result
                     self.qnet_trainer.rewards.append(rewards)
                     joblib.dump(self.qnet_trainer.rewards,
-                                os.path.join(log_path,
+                                os.path.join(self.log_path,
                                              "dora_%s.pkl" % self.run_name))
                     break
 
