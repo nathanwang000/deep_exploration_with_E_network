@@ -41,6 +41,26 @@ python run_parallel.py -m dora -a softmax -g mountain_car
 
 by default, this repeat 10 runs of the same experiment
 
+* register the bridge environment
+
+get your gym file location, call it gym/
+
+#+BEGIN_SRC python
+import gym
+print(gym.__file__)
+#+END_SRC
+
+then add the following line to ~gym/envs/__init__.py~
+
+#+BEGIN_SRC python
+register(
+    id="BridgeEnv-v0",
+    entry_point="gym.envs.bridge.bridge:BridgeEnv",
+)
+#+END_SRC
+
+then make a directory in ~gym/envs/bridge~ and put ~env/bridge.py~ in that directory
+
 * TODO
 
 urgent:
