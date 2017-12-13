@@ -45,9 +45,10 @@ by default, this repeat 10 runs of the same experiment
 
 get your gym file location, call it gym/
 
-#+BEGIN_SRC python
+#+BEGIN_SRC python :results output
 import gym
-print(gym.__file__)
+import os
+print(os.path.dirname(gym.__file__))
 #+END_SRC
 
 then add the following line to ~gym/envs/__init__.py~
