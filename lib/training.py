@@ -3,8 +3,6 @@ from itertools import count
 from torch.autograd import Variable
 from lib.dataset import ReplayMemory, Transition
 from lib.setting import *
-import matplotlib
-import matplotlib.pyplot as plt
 import torch.optim as optim
 import torch.nn.functional as F
 from sklearn.externals import joblib
@@ -191,7 +189,7 @@ class DoraTrainer:
             sarsa = None
             rewards = 0
 
-            print('episode', i_episode)
+            print('episode:', i_episode)
             for t in count():
                 # Select and perform an action
                 Qs = self.qnet_trainer.model(Variable(state, volatile=True).\
@@ -234,6 +232,7 @@ class DoraTrainer:
                     # store last transition to memory
                     sarsa.append(None)
                     # if sarsa[3] is not None: print('found it')      
+                    # print("{} updates".format(t))
                     
                     sarsa_dora = copy.deepcopy(sarsa)
                     sarsa_dora[2] = Tensor([0])
