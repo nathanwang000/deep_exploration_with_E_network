@@ -13,12 +13,40 @@ log_path = os.path.join(working_dir, 'logs/')
 os.system('mkdir -p %s' % log_path)
 
 # environment specific settings
-def mountain_car_setting():
-    batch_size = 32
-    target_update_frequency_Q = 10000
-    target_update_frequency_E = 1000
-    lr = 0.0001
-    memory_size = 50000
-    qnet_update_frequency = 4
-    gamma_q = 0.99
-    gamma_e = 0.9 # 0.99 # 2 experiments to run here
+class DefaultSetting:
+    def __init__(self):
+        self.batch_size = 128
+        self.lr = 0.01
+        self.memory_size = 10000
+        self.num_episodes = 30
+        
+        self.target_update_frequency_Q = 20
+        self.target_update_frequency_E = 20
+        self.qnet_update_frequency = 1
+        self.enet_update_frequency = 1
+        self.gamma_q = 0.99
+        self.gamma_e = 0.99
+    
+class MountainCarSetting(DefaultSetting):
+    def __init__(self):
+        super(self.__class__, self).__init__()
+        
+        self.batch_size = 32
+        self.lr = 1e-4
+        self.memory_size = 50000        
+        self.num_episodes = 3000        
+
+        self.target_update_frequency_Q = 10000
+        self.target_update_frequency_E = 1000
+        self.qnet_update_frequency = 4
+        self.enet_update_frequency = 4        
+        self.gamma_q = 0.99
+        self.gamma_e = 0.9 # 0.99 # 2 experiments to run here
+    
+
+def getSetting(game):
+    if game == 'mountain_car':
+        return MountainCarSetting()
+    else:
+        return DefaultSetting()
+    

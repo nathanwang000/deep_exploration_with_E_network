@@ -11,31 +11,33 @@ from sklearn.externals import joblib
 import os
 
 class Trainer:
-    def __init__(self, model, env, selection, lr=1e-4, sarsa=False,
-                 run_name='default', plot=False):
+    def __init__(self, model, env, selection, sarsa=False,
+                 run_name='default', plot=False,
+                 setting=DefaultSetting()):
 
+        print(setting.__dict__)
         self.plot = plot
         self.run_name = run_name
 
         self.sarsa = sarsa # if true, update sarsa, false q-learning
-        self.batch_size = 32 # 128
-        self.gamma = 0.999
+        self.batch_size = setting.batch_size
+        self.gamma = setting.gamma_q
 
-        self.memory = ReplayMemory(10000)
+        self.memory = ReplayMemory(setting.memory_size)
         self.model = model
 
         if use_cuda:
             self.model.cuda()
         self.target_model = copy.deepcopy(self.model)
 
-        self.lr = lr
+        self.lr = setting.lr
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
         # self.optimizer = optim.RMSprop(self.model.parameters(), lr=self.lr)
         # self.optimizer = optim.RMSprop(self.model.parameters())        
-        self.target_update_frequency = 20
-        self.qnet_update_frequency = 1
+        self.target_update_frequency = setting.target_update_frequency_Q
+        self.qnet_update_frequency = setting.qnet_update_frequency
 
-        self.num_episodes = 30
+        self.num_episodes = setting.num_episodes
         self.env = env
         self.selection = selection
 
@@ -159,20 +161,26 @@ class Trainer:
         self.env.close()
         
 class DoraTrainer:
-    def __init__(self, qnet, enet, env, selection, lr=1e-4, run_name="default",
-                 plot=False):
+    def __init__(self, qnet, enet, env, selection, run_name="default",
+                 plot=False, setting=DefaultSetting()):
 
         self.plot = plot
         self.run_name = run_name
         self.env = env
         self.selection = selection
-        self.lr = lr
+        self.lr = setting.lr
+
+        settingQ = setting
+        settingE = copy.deepcopy(setting)        
+        settingE.target_update_frequency_Q = settingE.target_update_frequency_E
+        settingE.qnet_update_frequency = settingE.enet_update_frequency
+        settingE.gamma_q = settingE.gamma_e
         
         # no use of selection and env here, because will override run function
-        self.qnet_trainer = Trainer(qnet, env, selection, lr=lr, sarsa=False)
-        self.enet_trainer = Trainer(enet, env, selection, lr=lr, sarsa=True)
+        self.qnet_trainer = Trainer(qnet, env, selection, sarsa=False, setting=settingQ)
+        self.enet_trainer = Trainer(enet, env, selection, sarsa=True, setting=settingE)
 
-        self.num_episodes = 30        
+        self.num_episodes = setting.num_episodes
 
     def run(self):
         for i_episode in range(self.num_episodes):
@@ -180,7 +188,8 @@ class DoraTrainer:
             state = self.env.reset()
             sarsa = None
             rewards = 0
-            
+
+            print('episode', i_episode)
             for t in count():
                 # Select and perform an action
                 Qs = self.qnet_trainer.model(Variable(state, volatile=True).\

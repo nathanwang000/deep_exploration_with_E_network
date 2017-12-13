@@ -23,38 +23,51 @@ def parse_args():
     args = parser.parse_args()
     return args
 
-def op_run(env, run_name='default', plot=False, selection='softmax'):
+def op_run(env, run_name='default', plot=False,
+           selection='softmax', setting=DefaultSetting()):
     selection = {'epsilon': epsilon_greedy(), 'softmax': softmax()}[selection]
     Qnet = selectNet('enet', env.name)
 
-    t = Trainer(Qnet, env, selection, run_name=run_name, plot=plot)
+    t = Trainer(Qnet, env, selection, run_name=run_name, plot=plot,
+                setting=setting)
     t.run()
 
-def dqn_run(env, run_name='default', plot=False, selection='softmax'):
+def dqn_run(env, run_name='default', plot=False,
+            selection='softmax', setting=DefaultSetting()):
     selection = {'epsilon': epsilon_greedy(), 'softmax': softmax()}[selection]
     Qnet = selectNet('dqn', env.name)
 
-    t = Trainer(Qnet, env, selection, run_name=run_name, plot=plot)
+    t = Trainer(Qnet, env, selection, run_name=run_name, plot=plot,
+                setting=setting)
     t.run()
 
-def dora_run(env, run_name='default', plot=False, selection='softmax'):
+def dora_run(env, run_name='default', plot=False,
+             selection='softmax', setting=DefaultSetting()):
     selection = {'epsilon': LLL_epsilon_greedy(), 'softmax': LLL_softmax()}[selection]
     Qnet = selectNet('dqn', env.name)
     Enet = selectNet('enet', env.name)
-    
-    t = DoraTrainer(Qnet, Enet, env, selection, lr=0.01, run_name=run_name, plot=plot)
+
+    t = DoraTrainer(Qnet, Enet, env, selection, run_name=run_name,
+                    plot=plot, setting=setting)
     t.run()
 
 def run(args):
     env = {'cart_pole': CartPoleVision, 'pacwoman': Pacwoman,
            'mountain_car': MountainCar}[args.game]()
+    setting = getSetting(args.game)
 
     if args.mode == 'dora':
-        dora_run(run_name=args.name, plot=args.plot, selection=args.selection, env=env)
+        dora_run(run_name=args.name, plot=args.plot,
+                 selection=args.selection, env=env,
+                 setting=setting)
     elif args.mode == 'dqn':
-        dqn_run(run_name=args.name, plot=args.plot, selection=args.selection, env=env)
+        dqn_run(run_name=args.name, plot=args.plot,
+                selection=args.selection, env=env,
+                setting=setting)
     else: # optimistic start
-        op_run(run_name=args.name, plot=args.plot, selection=args.selection, env=env) 
+        op_run(run_name=args.name, plot=args.plot,
+               selection=args.selection, env=env,
+               setting=setting) 
     
 if __name__ == '__main__':
     args = parse_args()
