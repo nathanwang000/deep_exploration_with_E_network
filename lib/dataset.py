@@ -79,13 +79,13 @@ class MountainCar:
         self.name = 'mountain_car'
 
     def reset(self):
-        state = torch.from_numpy(self.env.reset()).unsqueeze(0).float()
+        state = torch.from_numpy(self.env.reset()).unsqueeze(0).type(Tensor)
         return state
 
     def step(self, action):
         next_state, reward, done, info = self.env.step(action)
         if next_state is not None:
-            next_state = torch.from_numpy(next_state).unsqueeze(0).float()
+            next_state = torch.from_numpy(next_state).unsqueeze(0).type(Tensor)
         return next_state, reward, done, info
 
     def render(self, *args, **kwargs):
@@ -101,14 +101,14 @@ class Pacwoman:
 
     def reset(self):
         state = torch.from_numpy(self.env.reset().transpose((2,0,1)))\
-                     .unsqueeze(0).float()
+                     .unsqueeze(0).type(Tensor)
         return state
 
     def step(self, action):
         next_state, reward, done, info = self.env.step(action)
         if next_state is not None:
             next_state = torch.from_numpy(next_state.transpose((2,0,1)))\
-                              .unsqueeze(0).float()
+                              .unsqueeze(0).type(Tensor)
         return next_state, reward, done, info
 
     def render(self, *args, **kwargs):
