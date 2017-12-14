@@ -33,17 +33,19 @@ class ReplayMemory(object):
 
 class Bridge:
     def __init__(self):
-        self.env = gym.make("Bridge")
+        from env.tabular import q_value_iteration        
+        self.env = gym.make("BridgeEnv-v0")
         self.name = 'bridge'
+        self.Q_star = q_value_iteration(self.env.unwrapped)
 
     def reset(self):
-        state = torch.from_numpy(self.env.reset()).unsqueeze(0).type(Tensor)
+        state = Tensor([int(self.env.reset())]).unsqueeze(0)
         return state
 
     def step(self, action):
         next_state, reward, done, info = self.env.step(action)
         if next_state is not None:
-            next_state = torch.from_numpy(next_state).unsqueeze(0).type(Tensor)
+            next_state = Tensor([int(next_state)]).unsqueeze(0)
         return next_state, reward, done, info
 
     def render(self, *args, **kwargs):

@@ -4,6 +4,22 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch.autograd import Variable
 
+class BridgeDQN(nn.Module):
+    def __init__(self):
+        super(self.__class__, self).__init__()
+        
+        self.regressor = nn.Sequential(
+            nn.Linear(1, 64),
+            nn.Tanh(),
+            nn.Linear(64, 128),
+            nn.Tanh(),
+            nn.Linear(128, 4)
+        )
+
+    def forward(self, x):
+        x = self.regressor(x)
+        return x
+
 class PacwomanDQN(nn.Module):
     def __init__(self):
         super(self.__class__, self).__init__()
@@ -74,7 +90,7 @@ class CartPoleDQN(nn.Module):
 
 def selectNet(netname, envname):
     DQN = {'cart_pole':  CartPoleDQN, 'pacwoman': PacwomanDQN,
-           'mountain_car': MountainCarDQN}[envname]
+           'mountain_car': MountainCarDQN, 'bridge': BridgeDQN}[envname]
     if netname == 'dqn':
         return DQN()
     elif netname == 'enet':  # optimistic start and dora

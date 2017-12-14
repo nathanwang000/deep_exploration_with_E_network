@@ -1,8 +1,9 @@
 from lib.setting import *
 from lib.model import selectNet
-from lib.dataset import CartPoleVision, Pacwoman, MountainCar
+from lib.dataset import CartPoleVision, Pacwoman, MountainCar, Bridge
 from lib.action_selection import epsilon_greedy, LLL_epsilon_greedy, softmax, LLL_softmax
 from lib.training import Trainer, DoraTrainer
+from sklearn.externals import joblib
 import argparse
 import os
 
@@ -21,7 +22,7 @@ def parse_main_args():
                         default='softmax')
     parser.add_argument('-g', '--game',
                         help='which game to play [pacwoman, mountain_car, cart_pole]',
-                        choices=['pacwoman', 'mountain_car', 'cart_pole'],
+                        choices=['pacwoman', 'mountain_car', 'cart_pole', 'bridge'],
                         default='cart_pole')
     parser.add_argument('-l', '--logpath',
                         help='where to save the log, defualt to logs',
@@ -61,7 +62,7 @@ def dora_run(env, run_name='default', plot=False,
 
 def run(args):
     env = {'cart_pole': CartPoleVision, 'pacwoman': Pacwoman,
-           'mountain_car': MountainCar}[args.game]()
+           'mountain_car': MountainCar, 'bridge': Bridge}[args.game]()
     setting = getSetting(args.game)
     log_path = set_log_path(args.logpath)
 
@@ -82,3 +83,9 @@ if __name__ == '__main__':
     parser = parse_main_args()
     args = parser.parse_args()
     run(args)
+
+    if args.game == 'bridge':
+        joblib.dump(EsCounter,
+                    os.path.join(args.logpath,
+                                 "dora_counter_%s.pkl" % args.name))
+    

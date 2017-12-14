@@ -56,38 +56,41 @@ class Trainer:
         non_final_mask = ByteTensor(tuple(map(lambda s: s is not None,
                                               batch.next_action)))
 
-        # We don't want to backprop through the expected action values and volatile
-        # will save us on temporarily changing the model parameters'
-        # requires_grad to False!
-        non_final_next_states = Variable(torch.cat([b for a, b in zip(batch.next_action,
-                                                                      batch.next_state)
-                                                    if a is not None]),
-                                         volatile=True)    
-        # Variable(torch.cat([s for s in batch.next_state
-        #                                             if s is not None]),
-        #                                  volatile=True)
+        all_zeros = False
+        if sum(non_final_mask) == 0: # only when no exploration
+            all_zeros = True
+
+            
         state_batch = Variable(torch.cat(batch.state))
         action_batch = Variable(torch.cat(batch.action))
         reward_batch = Variable(torch.cat(batch.reward))
-        next_action_batch = Variable(torch.cat([a for a, b in zip(batch.next_action,
-                                                                  batch.next_state)
-                                                if a is not None]))    
 
         # Compute Q(s_t, a) - the model computes Q(s_t), then we select the
         # columns of actions taken
-
         state_action_values = self.model(state_batch).gather(1, action_batch)
 
         # Compute V(s_{t+1}) for all next states.
         next_state_values = Variable(torch.zeros(self.batch_size).type(Tensor))
 
-        # use target network for this transformation
-        if self.sarsa:
-            next_state_values[non_final_mask] = self.target_model(non_final_next_states)\
-                                                    .gather(1, next_action_batch)
-        else:
-            next_state_values[non_final_mask] = self.target_model(non_final_next_states)\
-                                                    .max(1)[0]
+        if not all_zeros:
+            # We don't want to backprop through the expected action values and volatile
+            # will save us on temporarily changing the model parameters'
+            # requires_grad to False!
+            non_final_next_states = Variable(torch.cat([b for a, b in \
+                                                        zip(batch.next_action,
+                                                            batch.next_state)
+                                                        if a is not None]),
+                                             volatile=True)
+            next_action_batch = Variable(torch.cat([a for a, b in zip(batch.next_action,
+                                                                      batch.next_state)
+                                                    if a is not None]))    
+            # use target network for this transformation      
+            if self.sarsa:
+                next_state_values[non_final_mask] = self.target_model(non_final_next_states)\
+                                                        .gather(1, next_action_batch)
+            else:
+                next_state_values[non_final_mask] = self.target_model(non_final_next_states)\
+                                                        .max(1)[0]
         # Now, we don't want to mess up the loss with a volatile flag, so let's
         # clear it. After this, we'll just end up with a Variable that has
         # requires_grad=False
@@ -201,11 +204,21 @@ class DoraTrainer:
                 
                 action = self.selection.select_action(Qs, Es, self.lr)
 
+                # for bridge env
+                if self.env.name == 'bridge':
+                    if len(self.qnet_trainer.memory) > self.qnet_trainer.batch_size:
+                        s_ = int(state[0][0])
+                        a_ = action[0][0]
+                        Es_a = Es[a_]
+                        q_learn = Qs[a_]
+                        q_star = self.env.Q_star[s_, a_]
+                        if q_star != 0:
+                            q_diff = abs((q_learn - q_star) / q_star)
+                            EsCounter[(s_,a_)].append([Es_a, q_diff])  
+
                 if sarsa is not None:
                     # Store the transition in memory                    
                     sarsa.append(action)
-                    if sarsa[4] is None and sarsa[3] is not None:
-                        print("bad")
                     sarsa_dora = copy.deepcopy(sarsa)
                     sarsa_dora[2] = Tensor([0]) # set reward of enet to 0
                     self.qnet_trainer.memory.push(*sarsa)
@@ -244,6 +257,7 @@ class DoraTrainer:
                     joblib.dump(self.qnet_trainer.rewards,
                                 os.path.join(self.log_path,
                                              "dora_%s.pkl" % self.run_name))
+
                     break
 
 

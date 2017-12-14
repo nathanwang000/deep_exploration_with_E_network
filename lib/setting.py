@@ -1,6 +1,9 @@
 import torch
 import matplotlib
 import os
+from collections import defaultdict
+
+EsCounter = defaultdict(list)
 
 use_cuda = torch.cuda.is_available()
 FloatTensor = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
@@ -26,7 +29,21 @@ class DefaultSetting:
         self.enet_update_frequency = 1
         self.gamma_q = 0.99
         self.gamma_e = 0.99
-    
+
+class BridgeSetting:
+    def __init__(self):
+        self.batch_size = 30
+        self.lr = 0.01
+        self.memory_size = 10000
+        self.num_episodes = 1000
+        
+        self.target_update_frequency_Q = 20
+        self.target_update_frequency_E = 20
+        self.qnet_update_frequency = 1
+        self.enet_update_frequency = 1
+        self.gamma_q = 0.99
+        self.gamma_e = 0.99
+        
 class MountainCarSetting(DefaultSetting):
     def __init__(self):
         super(self.__class__, self).__init__()
@@ -47,6 +64,8 @@ class MountainCarSetting(DefaultSetting):
 def getSetting(game):
     if game == 'mountain_car':
         return MountainCarSetting()
+    elif game == 'bridge':
+        return BridgeSetting()
     else:
         return DefaultSetting()
     
