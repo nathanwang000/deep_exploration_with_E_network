@@ -30,6 +30,20 @@ class DefaultSetting:
         self.gamma_q = 0.99
         self.gamma_e = 0.99
 
+class PacwomanSetting:
+    def __init__(self):
+        self.batch_size = 32
+        self.lr = 0.00025
+        self.memory_size = 50000
+        self.num_episodes = 3000
+        
+        self.target_update_frequency_Q = 10000
+        self.target_update_frequency_E = 10000
+        self.qnet_update_frequency = 4
+        self.enet_update_frequency = 4
+        self.gamma_q = 0.99
+        self.gamma_e = 0.99
+        
 class BridgeSetting:
     def __init__(self):
         self.batch_size = 30
@@ -65,6 +79,8 @@ def getSetting(game):
         return MountainCarSetting()
     elif game == 'bridge':
         return BridgeSetting()
+    elif game == 'pacwoman':
+        return PacwomanSetting()
     else:
         return DefaultSetting()
     

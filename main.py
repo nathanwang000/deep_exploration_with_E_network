@@ -1,6 +1,6 @@
 import os
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID" # so the IDs match nvidia-smi
-os.environ["CUDA_VISIBLE_DEVICES"] = "3" # "0, 1" for multiple
+os.environ["CUDA_VISIBLE_DEVICES"] = "2" # "0, 1" for multiple
 
 from lib.setting import *
 from lib.model import selectNet
