@@ -11,38 +11,41 @@ RIGHT = 2
 UP = 3
 
 MAPS = {
-    "4x4": [
+    "5": [
         "HHHHHHH",
         "LSBBBBG",
         "HHHHHHH"
+    ],
+    "15": [
+        "HHHHHHHHHHHHHHHHH",
+        "LSBBBBBBBBBBBBBBG",
+        "HHHHHHHHHHHHHHHHH"
     ],
 }
 
 class BridgeEnv(discrete.DiscreteEnv):
     """
-    Winter is here. You and your friends were tossing around a frisbee at the park
-    when you made a wild throw that left the frisbee out in the middle of the lake.
-    The water is mostly frozen, but there are a few holes where the ice has melted.
-    If you step into one of those holes, you'll fall into the freezing water.
-    At this time, there's an international frisbee shortage, so it's absolutely imperative that
-    you navigate across the lake and retrieve the disc.
-    However, the ice is slippery, so you won't always move in the direction you intend.
-    The surface is described using a grid like the following
-        SFFF
-        FHFH
-        FFFH
-        HFFG
+    Brdge environment is a grid world environment. You are on the left side of
+    the river, and your aim is to go along the bridge to the otherside to get
+    a reward of +10. If you go up or down on the bridge, you will fall into the
+    river and get a reward of -100. If you go backwards, you will end your trip
+    with reward of only +1.
+    This environment is build upon the FrozenLake environment.
+    A bridge environment with length=5 looks like this
+        HHHHHHH
+        LSBBBBG
+        HHHHHHH
     S : starting point, safe
-    F : frozen surface, safe
-    H : hole, fall to your doom
-    G : goal, where the frisbee is located
-    The episode ends when you reach the goal or fall in a hole.
-    You receive a reward of 1 if you reach the goal, and zero otherwise.
+    L : terminating point, with low reward
+    B : bridge, safe
+    H : river
+    G : goal, with high reward
+    The episode ends when you reach a terminating state.
     """
 
     metadata = {'render.modes': ['human', 'ansi']}
 
-    def __init__(self, desc=None, map_name="4x4", noise=0):
+    def __init__(self, desc=None, map_name="5", noise=0):
         if desc is None and map_name is None:
             raise ValueError('Must provide either desc or map_name')
         elif desc is None:
@@ -117,3 +120,9 @@ class BridgeEnv(discrete.DiscreteEnv):
 
         if mode != 'human':
             return outfile
+
+class BridgeLargeEnv(BridgeEnv):
+
+    def __init__(self):
+        super(BridgeLargeEnv, self).__init__(map_name="15")
+

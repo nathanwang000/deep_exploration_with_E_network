@@ -19,6 +19,11 @@ Reproduce results in ICLR submission DORA
 
 * Running the code
 
+To reproduce the results in our reproduction workshop paper, please read the
+following setup
+
+** Function approximation
+
 The code has multiple arguments that you can pass in (e.g., to use Dora or DQN,
 to use epsilon greedy or softmax, to render the environment or not, choose the 
 environment to run). You can read about the options by running
@@ -40,6 +45,10 @@ python run_parallel.py -m dora -a softmax -g mountain_car
 #+END_SRC
 
 by default, this repeat 10 runs of the same experiment
+
+** Tabular setting
+
+Please refer to env/readme.txt
 
 * register the bridge environment
 
@@ -72,17 +81,9 @@ env_small = gym.make("BridgeEnv-v0")
 #+RESULTS:
 : None
 
-* TODO
 
-urgent:
 
-1. add tabular code to the repository
-2. more evaluation metrics to use (e.g., record e value over time and observe
-   patterns)
-3. possibly drop the ms pacman experiment if too hard to tune
-4. possibly drop ensemble DQN if hard to get right 
 
-not urgent:
 
-1. visualize the training use tensorboard
-2. save model using torch
+
+
