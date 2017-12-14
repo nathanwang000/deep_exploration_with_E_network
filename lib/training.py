@@ -5,6 +5,7 @@ from lib.dataset import ReplayMemory, Transition
 from lib.setting import *
 import torch.optim as optim
 import torch.nn.functional as F
+import torch.nn as nn
 from sklearn.externals import joblib
 import os
 
@@ -99,7 +100,10 @@ class Trainer:
         expected_state_action_values = (next_state_values * self.gamma) + reward_batch
 
         # Compute Huber loss
-        loss = F.smooth_l1_loss(state_action_values, expected_state_action_values)
+        if self.env.name == 'mountain_car':
+            loss =F.mse_loss(state_action_values, expected_state_action_values)
+        else:
+            loss = F.smooth_l1_loss(state_action_values, expected_state_action_values)
 
         # Optimize the model
         self.optimizer.zero_grad()
