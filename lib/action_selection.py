@@ -37,6 +37,7 @@ class softmax:
         return np.exp(Qs) / np.exp(Qs).sum()
         
     def select_action(self, Qs):
+        self.steps_done += 1
         action = np.random.choice(len(Qs), p=self.q2pr(Qs)) 
         return LongTensor([[action]])        
 
