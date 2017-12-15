@@ -8,6 +8,9 @@ import torch.nn.functional as F
 import torch.nn as nn
 from sklearn.externals import joblib
 import os
+import numpy as np
+import math
+                    
 
 class Trainer:
     def __init__(self, model, env, selection, sarsa=False,
@@ -160,12 +163,7 @@ class Trainer:
                     
                     # report result
                     self.rewards.append(rewards)
-                    import numpy as np
-                    import math
-                    eps = self.selection.eps_end + (self.selection.eps_start - self.selection.eps_end) * \
-                          math.exp(-1. * self.selection.steps_done / self.selection.eps_decay)
-                    
-                    print(np.mean(self.rewards[-100:]), self.selection.steps_done, eps)
+                    print(np.mean(self.rewards[-100:]), self.selection.steps_done)
                     joblib.dump(self.rewards,
                                 os.path.join(self.log_path, "dqn_%s.pkl" % self.run_name))
                     break
@@ -257,7 +255,7 @@ class DoraTrainer:
                     sarsa.append(None)
                     # if sarsa[3] is not None: print('found it')      
                     # print("{} updates".format(t))
-                    
+
                     sarsa_dora = copy.deepcopy(sarsa)
                     sarsa_dora[2] = Tensor([0])
                     self.qnet_trainer.memory.push(*sarsa)
@@ -265,6 +263,7 @@ class DoraTrainer:
 
                     # report result
                     self.qnet_trainer.rewards.append(rewards)
+                    print(np.mean(self.qnet_trainer.rewards[-100:]), self.selection.steps_done)                                        
                     joblib.dump(self.qnet_trainer.rewards,
                                 os.path.join(self.log_path,
                                              "dora_%s.pkl" % self.run_name))
