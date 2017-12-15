@@ -42,10 +42,11 @@ class Trainer:
         self.selection = selection
 
         self.rewards = []
+        self.learning_start = 1000
 
     def optimize_model(self):
 
-        if len(self.memory) < self.batch_size:
+        if len(self.memory) < max(self.batch_size, self.learning_start):
             return
         
         transitions = self.memory.sample(self.batch_size)
@@ -111,7 +112,7 @@ class Trainer:
 
         if self.selection.steps_done % self.qnet_update_frequency == 0:
             for param in self.model.parameters():
-                param.grad.data.clamp_(-1, 1)
+                param.grad.data.clamp_(-10, 10)
             self.optimizer.step()
 
         # update target network
@@ -159,6 +160,12 @@ class Trainer:
                     
                     # report result
                     self.rewards.append(rewards)
+                    import numpy as np
+                    import math
+                    eps = self.selection.eps_end + (self.selection.eps_start - self.selection.eps_end) * \
+                          math.exp(-1. * self.selection.steps_done / self.selection.eps_decay)
+                    
+                    print(np.mean(self.rewards[-100:]), self.selection.steps_done, eps)
                     joblib.dump(self.rewards,
                                 os.path.join(self.log_path, "dqn_%s.pkl" % self.run_name))
                     break

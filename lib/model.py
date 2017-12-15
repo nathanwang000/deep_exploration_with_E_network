@@ -45,6 +45,23 @@ class PacwomanDQN(nn.Module):
         x = self.regressor(x)
         return x
 
+# class MountainCarDQN(nn.Module):
+
+#     def __init__(self):
+#         super(self.__class__, self).__init__()
+        
+#         self.regressor = nn.Sequential(
+#             nn.Linear(2, 64),
+#             nn.Tanh(),
+#             nn.Linear(64, 128),
+#             nn.Tanh(),
+#             nn.Linear(128, 3)
+#         )
+
+#     def forward(self, x):
+#         x = self.regressor(x)
+#         return x
+
 class MountainCarDQN(nn.Module):
 
     def __init__(self):
@@ -52,15 +69,14 @@ class MountainCarDQN(nn.Module):
         
         self.regressor = nn.Sequential(
             nn.Linear(2, 64),
-            nn.Tanh(),
-            nn.Linear(64, 128),
-            nn.Tanh(),
-            nn.Linear(128, 3)
+            nn.ReLU(),
+            nn.Linear(64, 3)
         )
 
     def forward(self, x):
         x = self.regressor(x)
         return x
+
     
 class CartPoleDQN(nn.Module):
 

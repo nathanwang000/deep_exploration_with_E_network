@@ -14,7 +14,7 @@ class epsilon_greedy:
         self.steps_done = 0
         self.eps_start = 0.9
         self.eps_end = 0.05
-        self.eps_decay = 200
+        self.eps_decay = 2000
 
     def select_action(self, Qs):
         eps = self.eps_end + (self.eps_start - self.eps_end) * \
