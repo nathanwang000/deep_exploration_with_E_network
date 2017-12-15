@@ -86,7 +86,6 @@ env_small = gym.make("BridgeEnv-v0")
 
 
 
-
 * Conclusion of our replication
 
 We verified that DORA is working in the tabular setting. However, DORA's
