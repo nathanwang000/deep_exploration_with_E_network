@@ -87,3 +87,19 @@ env_small = gym.make("BridgeEnv-v0")
 
 
 
+* Conclusion of our replication
+
+We verified that DORA is working in the tabular setting. However, DORA's
+experiments using function approximation put DQN into a disadvantageous position
+(not a fair comparison). We are able to adjust the setting to get much better
+result using DQN.
+
+For replication of our setting, switch to branch openai (named by referencing
+[[https://github.com/openai/baselines/blob/master/baselines/deepq/experiments/train_mountaincar.py][openai setting]]), and execute
+
+#+BEGIN_SRC bash
+python main.py -m dqn -g mountain_car.py -l logs
+#+END_SRC
+
+Then ~logs/dqn_default.pkl~ caches the rewards of this run. You should be able
+to verify it worked by executing code in ~plot.ipynb~
