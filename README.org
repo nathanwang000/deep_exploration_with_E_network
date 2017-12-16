@@ -67,6 +67,10 @@ register(
     id="BridgeEnv-v0",
     entry_point="gym.envs.bridge.bridge:BridgeEnv",
 )
+register(
+    id="BridgeLargeEnv-v0",
+    entry_point="gym.envs.bridge.bridge:BridgeLargeEnv",
+)
 #+END_SRC
 
 then make a directory in ~gym/envs/bridge~ and put ~env/bridge.py~ in that directory
@@ -76,6 +80,7 @@ To run the code
 #+BEGIN_SRC python
 import gym
 env_small = gym.make("BridgeEnv-v0")
+env_large = gym.make("BridgeLargeEnv-v0")
 #+END_SRC
 
 #+RESULTS:
