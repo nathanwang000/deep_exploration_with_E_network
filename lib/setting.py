@@ -88,7 +88,7 @@ class MountainCarSetting(DefaultSetting):
         self.qnet_update_frequency = 1
         self.enet_update_frequency = 1        
         self.gamma_q = 1
-        self.gamma_e = 1 # 2 experiments to run here: 0.99, 0.9
+        self.gamma_e = 0.99 # 2 experiments to run here: 0.99, 0.9
         
 
 def getSetting(game):
