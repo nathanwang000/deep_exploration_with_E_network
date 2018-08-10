@@ -13,9 +13,7 @@
 #+LANGUAGE: en
 #+SELECT_TAGS: export
 
-* Purpose
-
-Reproduce results in ICLR submission DORA
+This repository contains reproduction of results in ICLR submission DORA. The paper aims to tackle deep exploration problem in reinforcement learning. It works by using two Q-networks, one to estimate value of a given state action pair, the other to quantify uncertainty (initialized to be uncertain, sort of like a soft counter). See [[./EECS598_final_project.pdf][report]] for detail of our replication. The main conclusion of our research is that the DORA baselines are too weak, but we do think the authors proposed a technically interesting solution to the exploration vs. exploitation problem.
 
 * Running the code
 
