@@ -90,7 +90,7 @@ class CartPoleDQN(nn.Module):
 
 def selectNet(netname, envname):
     DQN = {'cart_pole':  CartPoleDQN, 'pacwoman': PacwomanDQN,
-           'mountain_car': MountainCarDQN, 'bridge': BridgeDQN}[envname]
+           'mountain_car': MountainCarDQN,'mountain_car_long':MountainCarDQN, 'bridge': BridgeDQN}[envname]
     if netname == 'dqn':
         return DQN()
     elif netname == 'enet':  # optimistic start and dora

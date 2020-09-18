@@ -105,3 +105,12 @@ python main.py -m dqn -g mountain_car.py -l logs
 
 Then ~logs/dqn_default.pkl~ caches the rewards of this run. You should be able
 to verify it worked by executing code in ~plot.ipynb~
+
+* Authors Response
+
+Authours response and the whole openreview process can be found here:
+https://openreview.net/forum?id=ry1arUgCW
+
+In short, the first experiment needed crucial fixes but basically the problem was changed so no agent converged at all (not that E values were worse, just with no change). Fixing the problem allowed replicatin.
+On the different problem it was still the case that E values were better on average, even though an example could be found in which a single DQN run was better than a single E values based run. 
+Additionally, freeway experiments were added to the paper replicating the results on another problem (not found in the replication due to the review process).

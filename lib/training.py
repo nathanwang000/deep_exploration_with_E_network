@@ -120,7 +120,7 @@ class Trainer:
 
     def run(self):
         for i_episode in range(self.num_episodes):
-            print("episode:", i_episode)
+            # print("episode:", i_episode)
             # Initialize the environment and state
             state = self.env.reset()
             sarsa = None
@@ -163,6 +163,9 @@ class Trainer:
                                 os.path.join(self.log_path, "dqn_%s.pkl" % self.run_name))
                     break
 
+            print('Finished episode {0} with reward {1}'.format(i_episode,rewards))
+
+
         self.env.render(close=True)
         self.env.close()
         
@@ -196,7 +199,7 @@ class DoraTrainer:
             sarsa = None
             rewards = 0
 
-            print('episode:', i_episode)
+            #print('episode:', i_episode)
             for t in count():
                 # Select and perform an action
                 Qs = self.qnet_trainer.model(Variable(state, volatile=True).\
@@ -263,6 +266,8 @@ class DoraTrainer:
                                              "dora_%s.pkl" % self.run_name))
 
                     break
+
+            print('Finished episode {0} with reward {1}'.format(i_episode,rewards))
 
 
         self.env.render(close=True)

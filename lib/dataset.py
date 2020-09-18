@@ -74,6 +74,27 @@ class MountainCar:
 
     def close(self):
         self.env.close()
+
+class MountainCarLong:
+    def __init__(self):
+        self.env = gym.make('MountainCarLong-v0')
+        self.name = 'mountain_car_long'
+
+    def reset(self):
+        state = torch.from_numpy(self.env.reset()).unsqueeze(0).type(Tensor)
+        return state
+
+    def step(self, action):
+        next_state, reward, done, info = self.env.step(action)
+        if next_state is not None:
+            next_state = torch.from_numpy(next_state).unsqueeze(0).type(Tensor)
+        return next_state, reward, done, info
+
+    def render(self, *args, **kwargs):
+        self.env.render(*args, **kwargs)
+
+    def close(self):
+        self.env.close()
     
 class Pacwoman:
     def __init__(self):

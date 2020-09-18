@@ -4,7 +4,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "2" # "0, 1" for multiple
 
 from lib.setting import *
 from lib.model import selectNet
-from lib.dataset import CartPoleVision, Pacwoman, MountainCar, Bridge
+from lib.dataset import CartPoleVision, Pacwoman, MountainCar,MountainCarLong, Bridge
 from lib.action_selection import epsilon_greedy, LLL_epsilon_greedy, softmax, LLL_softmax
 from lib.training import Trainer, DoraTrainer
 from sklearn.externals import joblib
@@ -22,12 +22,18 @@ def parse_main_args():
                         choices=['epsilon', 'softmax'],
                         default='softmax')
     parser.add_argument('-g', '--game',
-                        help='which game to play [pacwoman, mountain_car, cart_pole]',
-                        choices=['pacwoman', 'mountain_car', 'cart_pole', 'bridge'],
+                        help='which game to play [pacwoman, mountain_car, mountain_car_long cart_pole]',
+                        choices=['pacwoman', 'mountain_car','mountain_car_long', 'cart_pole', 'bridge'],
                         default='cart_pole')
     parser.add_argument('-l', '--logpath',
                         help='where to save the log, defualt to logs',
                         default='logs')
+
+    parser.add_argument('-t', '--temperature',
+                        help='Temperature for softmax',
+                        default=1.0,type=float)
+
+
     return parser
 
 def op_run(env, run_name='default', plot=False,
@@ -42,8 +48,8 @@ def op_run(env, run_name='default', plot=False,
 
 def dqn_run(env, run_name='default', plot=False,
             selection='softmax', setting=DefaultSetting(),
-            log_path='logs'):
-    selection = {'epsilon': epsilon_greedy(), 'softmax': softmax()}[selection]
+            log_path='logs',temperature=1.0):
+    selection = {'epsilon': epsilon_greedy(), 'softmax': softmax(T=temperature)}[selection]
     Qnet = selectNet('dqn', env.name)
 
     t = Trainer(Qnet, env, selection, run_name=run_name, plot=plot,
@@ -52,8 +58,8 @@ def dqn_run(env, run_name='default', plot=False,
 
 def dora_run(env, run_name='default', plot=False,
              selection='softmax', setting=DefaultSetting(),
-             log_path='logs'):
-    selection = {'epsilon': LLL_epsilon_greedy(), 'softmax': LLL_softmax()}[selection]
+             log_path='logs',temperature=1.0):
+    selection = {'epsilon': LLL_epsilon_greedy(), 'softmax': LLL_softmax(T=temperature)}[selection]
     Qnet = selectNet('dqn', env.name)
     Enet = selectNet('enet', env.name)
 
@@ -63,18 +69,18 @@ def dora_run(env, run_name='default', plot=False,
 
 def run(args):
     env = {'cart_pole': CartPoleVision, 'pacwoman': Pacwoman,
-           'mountain_car': MountainCar, 'bridge': Bridge}[args.game]()
+           'mountain_car': MountainCar, 'bridge': Bridge,'mountain_car_long':MountainCarLong}[args.game]()
     setting = getSetting(args.game)
     log_path = set_log_path(args.logpath)
 
     if args.mode == 'dora':
         dora_run(run_name=args.name, plot=args.plot,
                  selection=args.selection, env=env,
-                 setting=setting, log_path=log_path)
+                 setting=setting, log_path=log_path, temperature=args.temperature)
     elif args.mode == 'dqn':
         dqn_run(run_name=args.name, plot=args.plot,
                 selection=args.selection, env=env,
-                setting=setting, log_path=log_path)
+                setting=setting, log_path=log_path, temperature=args.temperature)
     else: # optimistic start
         op_run(run_name=args.name, plot=args.plot,
                selection=args.selection, env=env,
