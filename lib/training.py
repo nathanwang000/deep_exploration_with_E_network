@@ -6,7 +6,7 @@ from lib.setting import *
 import torch.optim as optim
 import torch.nn.functional as F
 import torch.nn as nn
-from sklearn.externals import joblib
+import joblib
 import os
 
 class Trainer:
@@ -88,7 +88,7 @@ class Trainer:
             # use target network for this transformation      
             if self.sarsa:
                 next_state_values[non_final_mask] = self.target_model(non_final_next_states)\
-                                                        .gather(1, next_action_batch)
+                                                        .gather(1, next_action_batch)[:, 0]
             else:
                 next_state_values[non_final_mask] = self.target_model(non_final_next_states)\
                                                         .max(1)[0]
@@ -97,11 +97,11 @@ class Trainer:
         # requires_grad=False
         next_state_values.volatile = False
         # Compute the expected Q values
-        expected_state_action_values = (next_state_values * self.gamma) + reward_batch
+        expected_state_action_values = torch.unsqueeze((next_state_values * self.gamma) + reward_batch, -1)
 
         # Compute Huber loss
         if self.env.name == 'mountain_car':
-            loss =F.mse_loss(state_action_values, expected_state_action_values)
+            loss = F.mse_loss(state_action_values, expected_state_action_values)
         else:
             loss = F.smooth_l1_loss(state_action_values, expected_state_action_values)
 
@@ -234,7 +234,7 @@ class DoraTrainer:
                 if self.plot:
                     self.env.render()
                 # reward is 0 for updating evalue
-                next_state, reward, done, _ = self.env.step(action[0, 0])
+                next_state, reward, done, _, _ = self.env.step(action[0, 0].numpy())
                 rewards += reward
                 reward = Tensor([reward])
         

@@ -43,10 +43,10 @@ class Bridge:
         return state
 
     def step(self, action):
-        next_state, reward, done, info = self.env.step(action)
+        next_state, reward, done, truncated, info = self.env.step(action)
         if next_state is not None:
             next_state = Tensor([int(next_state)]).unsqueeze(0)
-        return next_state, reward, done, info
+        return next_state, reward, done, truncated, info
 
     def render(self, *args, **kwargs):
         self.env.render(*args, **kwargs)
@@ -60,14 +60,14 @@ class MountainCar:
         self.name = 'mountain_car'
 
     def reset(self):
-        state = torch.from_numpy(self.env.reset()).unsqueeze(0).type(Tensor)
+        state = torch.from_numpy(self.env.reset()[0]).unsqueeze(0).type(Tensor)
         return state
 
     def step(self, action):
-        next_state, reward, done, info = self.env.step(action)
+        next_state, reward, done, truncated, info = self.env.step(action)
         if next_state is not None:
             next_state = torch.from_numpy(next_state).unsqueeze(0).type(Tensor)
-        return next_state, reward, done, info
+        return next_state, reward, done, truncated, info
 
     def render(self, *args, **kwargs):
         self.env.render(*args, **kwargs)
@@ -85,10 +85,10 @@ class MountainCarLong:
         return state
 
     def step(self, action):
-        next_state, reward, done, info = self.env.step(action)
+        next_state, reward, done, truncated, info = self.env.step(action)
         if next_state is not None:
             next_state = torch.from_numpy(next_state).unsqueeze(0).type(Tensor)
-        return next_state, reward, done, info
+        return next_state, reward, done, truncated, info
 
     def render(self, *args, **kwargs):
         self.env.render(*args, **kwargs)
@@ -107,11 +107,11 @@ class Pacwoman:
         return state
 
     def step(self, action):
-        next_state, reward, done, info = self.env.step(action)
+        next_state, reward, done, truncated, info = self.env.step(action)
         if next_state is not None:
             next_state = torch.from_numpy(next_state.transpose((2,0,1)))\
                               .unsqueeze(0).type(Tensor)
-        return next_state, reward, done, info
+        return next_state, reward, done, truncated, info
 
     def render(self, *args, **kwargs):
         self.env.render(*args, **kwargs)
@@ -133,7 +133,7 @@ class CartPoleVision:
         return state
 
     def step(self, action):
-        _, reward, done, info = self.env.step(action)
+        _, reward, done, truncated, info = self.env.step(action)
 
         # Observe new state
         self.last_screen = self.current_screen
@@ -142,7 +142,7 @@ class CartPoleVision:
             next_state = self.current_screen - self.last_screen
         else:
             next_state = None
-        return next_state, reward, done, info
+        return next_state, reward, done, truncated, info
 
     def render(self, *args, **kwargs):
         self.env.render(*args, **kwargs)

@@ -7,7 +7,7 @@ from lib.model import selectNet
 from lib.dataset import CartPoleVision, Pacwoman, MountainCar,MountainCarLong, Bridge
 from lib.action_selection import epsilon_greedy, LLL_epsilon_greedy, softmax, LLL_softmax
 from lib.training import Trainer, DoraTrainer
-from sklearn.externals import joblib
+import joblib
 import argparse
 
 
