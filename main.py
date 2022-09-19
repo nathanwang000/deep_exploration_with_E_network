@@ -167,7 +167,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     run(args)
 
-    if args.game == "bridge" and args.mode == "dora":
+    if args.mode == "dora":
         joblib.dump(
             EsCounter, os.path.join(args.logpath, "counter_dora_%s.pkl" % args.name)
         )

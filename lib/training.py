@@ -140,6 +140,8 @@ class Trainer:
         if self.selection.steps_done % self.target_update_frequency == 0:
             self.target_model = copy.deepcopy(self.model)
 
+        return loss
+
     def run(self):
         for i_episode in range(self.num_episodes):
             # print("episode:", i_episode)
@@ -225,6 +227,8 @@ class DoraTrainer:
         self.num_episodes = setting.num_episodes
 
     def run(self):
+        counter_loss = None
+
         for i_episode in range(self.num_episodes):
             # Initialize the environment and state
             state = self.env.reset()
@@ -260,12 +264,11 @@ class DoraTrainer:
                         q_star = self.env.Q_star[s_, a_]
                         if q_star != 0:
                             q_diff = abs((q_learn - q_star) / q_star)
-                            EsCounter[(s_, a_)].append([Es_a, q_diff])
+                            EsCounter[(s_, a_)].append([Es_a, q_diff, counter_loss.detach().numpy()])
                 else:
-                    s_ = int(state[0][0])
                     a_ = action[0][0]
                     Es_a = Es[a_]
-                    EsCounter[(s_, a_)].append([Es_a])
+                    EsCounter[t].append([Es_a, counter_loss.detach().numpy() if counter_loss is not None else None])
 
                 if sarsa is not None:
                     # Store the transition in memory
@@ -288,7 +291,7 @@ class DoraTrainer:
 
                 # Perform one step of the optimization
                 self.qnet_trainer.optimize_model()
-                self.enet_trainer.optimize_model()
+                counter_loss = self.enet_trainer.optimize_model()
 
                 if done or t >= self.env.spec.max_episode_steps:
                     # store last transition to memory

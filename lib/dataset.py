@@ -149,7 +149,7 @@ class Pacwoman:
 
 class CartPoleVision:
     def __init__(self, render_mode):
-        self.env = gym.make("CartPole-v0", render_mode=render_mode).unwrapped
+        self.env = gym.make("CartPole-v0", render_mode="rgb_array").unwrapped
         self.screen_width = 600
         self.name = "cart_pole"
 
@@ -172,9 +172,6 @@ class CartPoleVision:
             next_state = None
         return next_state, reward, done, truncated, info
 
-    def render(self, *args, **kwargs):
-        self.env.render(*args, **kwargs)
-
     @property
     def spec(self):
         return self.env.spec
@@ -193,10 +190,10 @@ class CartPoleVision:
     def get_screen(self):
 
         resize = T.Compose(
-            [T.ToPILImage(), T.Scale(40, interpolation=Image.CUBIC), T.ToTensor()]
+            [T.ToPILImage(), T.Resize(40, interpolation=T.InterpolationMode.BICUBIC), T.ToTensor()]
         )
 
-        screen = self.env.render(mode="rgb_array").transpose(
+        screen = self.env.render().transpose(
             (2, 0, 1)
         )  # transpose into torch order (CHW)
         # Strip off the top and bottom of the screen
