@@ -1,2 +1,5 @@
 *~
 *.pyc
+logs/
+.DS_Store
+*.png
